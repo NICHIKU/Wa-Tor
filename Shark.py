@@ -1,5 +1,6 @@
-from Fish import Fish
 from __future__ import annotations
+from Fish import Fish
+
 
 class Shark( Fish ):
     def __init__(self : Shark, image : str,positionX : int,positionY : int,reproduction_time:int,energy:int ):
@@ -13,7 +14,7 @@ class Shark( Fish ):
         return self.energy
     
     def setEnergy(self, energy:int)->bool:
-        if energy is None | isinstance(energy, int)==False | energy<0:
+        if energy is None or isinstance(energy, int)==False or energy<0:
             return False
         self.energy = energy
         return True

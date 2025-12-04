@@ -23,25 +23,25 @@ class Fish:
         return self.reproduction_time
     
     def setImage(self, chemin:str)->bool:
-        if chemin is None | isinstance(chemin, str)==False:
+        if chemin is None or isinstance(chemin, str)==False:
             return False
         self.image = chemin
         return True
     
     def setX(self, x:int)->bool:
-        if x is None | isinstance(x, int)==False | x<0:
+        if x is None or isinstance(x, int)==False or x<0:
             return False
         self.positionX = x
         return True
     
     def setY(self, y:int)->bool:
-        if y is None | isinstance(y, int)==False | y<0:
+        if y is None or isinstance(y, int)==False or y<0:
             return False
         self.positionY = y
         return True
     
     def setReproduction(self, reproduction_time:int)->bool:
-        if reproduction_time is None | isinstance(reproduction_time, int)==False | reproduction_time<0:
+        if reproduction_time is None or isinstance(reproduction_time, int)==False or reproduction_time<0:
             return False
         self.reproduction_time = reproduction_time
         return True
