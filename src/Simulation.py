@@ -1,6 +1,6 @@
-from Fish import Fish
-from Shark import Shark
-from World import World
+from model.Fish import Fish
+from model.Shark import Shark
+from model.World import World
 from random import randrange
 
 witdh = 5
@@ -12,10 +12,10 @@ nb_fish = 10
 
 world = World(witdh, height, chronons)
 
-default_fish_image = "<img src='fish.png'/>"
+default_fish_image = "<img src='img/fish.png'/>"
 default_fish_reproduction_time = 5
 
-default_shark_image = "<img src='shark.png'/>"
+default_shark_image = "<img src='img/shark.png'/>"
 default_shark_reproduction_time = 12
 default_shark_energy = 5
 

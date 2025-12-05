@@ -1,5 +1,5 @@
 from __future__ import annotations
-from Fish import Fish
+from .Fish import Fish
 
 
 class Shark( Fish ):
