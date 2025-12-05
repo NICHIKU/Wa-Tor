@@ -42,6 +42,7 @@ if __name__ == "__main__":
     
     world.addFish(fish1)
     world.addShark(shark1)
+    print(world)
     
     print(f"Chronons: {world.getChronons()}")
     world.timeFlows()
