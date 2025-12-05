@@ -1,8 +1,9 @@
 import tkinter as tk
-from Fish import Fish
-from Shark import Shark
+from model.Fish import Fish
+from model.Shark import Shark
+from model.World import World
 from Simulation import initialize_simulation, move_entity
-from World import World
+
 import random
 CELL_SIZE = 80
 
