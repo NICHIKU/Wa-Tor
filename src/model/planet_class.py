@@ -5,8 +5,8 @@ class wator_planet:
     def __init__(self,
                  width: int,
                  height: int,
-                 perc_fish: float,
-                 perc_shark: float,
+                 perc_fish: float, #it's here mainly for test
+                 perc_shark: float, #it's here mainly for test
                  fish_reproduction_time: int = 8,
                  shark_reproduction_time: int = 12,
                  shark_starvation_time: int = 5,
@@ -16,6 +16,8 @@ class wator_planet:
         self.height = height
         self.perc_fish = perc_fish
         self.perc_shark = perc_shark
+        """ Put x and y on the fish and shark class to retrieve them for the rest of the code """
+        """ This atributes could also go to fish and shark. Create an animal class? """
         self.fish_reproduction_time = fish_reproduction_time
         self.shark_reproduction_time = shark_reproduction_time
         self.shark_starvation_time = shark_starvation_time
@@ -27,15 +29,17 @@ class wator_planet:
         self.empty_spaces = world_spaces - self.fish_population - self.shark_population
         
         self.chronon = 0
-        self.fish_birth = {}
-        self.shark_birth = {}
+        """ the births and energy should go to fish and shark 
+        Maybe find an intersection between fish and shark as a "animal_birth" or something like that """
+        self.fish_time_left = {}
+        self.shark_time_left = {}
         self.shark_energy = {} 
         self.create_grid()
         
         self.fish_history = [self.fish_population]
         self.shark_history = [self.shark_population]
     
-    def create_grid(self):
+    def create_grid(self): #stays
         #Create initial grid with fish, sharks, and empty spaces
         array = np.concatenate([
             np.full(self.fish_population, "F"),
@@ -45,22 +49,18 @@ class wator_planet:
         np.random.shuffle(array)
         self.grid = array.reshape(self.height, self.width)
         
-        self.initialize_fish()
-        self.initialize_sharks()
+        self.initialize_population()
     
-    def initialize_fish(self):
-        #Initialize all fish with birth chronon
+
+    def initialize_population(self):
         fish_positions = np.argwhere(self.grid == "F")
         for position in fish_positions:
             x, y = position
-            self.fish_birth[(x, y)] = 0
-    
-    def initialize_sharks(self):
-        #Initialize all sharks with birth chronon and energy
+            self.fish_time_left[(x, y)] = self.fish_reproduction_time
         shark_positions = np.argwhere(self.grid == "S")
         for position in shark_positions:
             x, y = position
-            self.shark_birth[(x, y)] = 0
+            self.shark_time_left[(x, y)] = self.shark_reproduction_time
             self.shark_energy[(x, y)] = self.shark_initial_energy
 
     def movement_result(self):
@@ -94,7 +94,13 @@ class wator_planet:
         
         return new_x, new_y
     
-    def get_fish_age(self, x, y):
+    #code a modifier avec les methodes de classe
+    '''
+    def get_age_and_position(self):
+        
+    '''
+    """ This two can become just one as well """
+    """ def get_fish_age(self, x, y):
         #Calculate age of fish at position x, y
         birth_time = self.fish_birth.get((x, y), 0)
         return self.chronon - birth_time
@@ -102,15 +108,15 @@ class wator_planet:
     def get_shark_age(self, x, y):
         #Calculate age of shark at position x, y
         birth_time = self.shark_birth.get((x, y), 0)
-        return self.chronon - birth_time
+        return self.chronon - birth_time"""
     
     # Fish functions
     
     def move_fish(self, x, y, new_x, new_y):
         # Move fish with reproduction logic
-        fish_age = self.get_fish_age(x, y)
+        self.fish_time_left[(x, y)] -= 1
         
-        if fish_age >= self.fish_reproduction_time:
+        if self.fish_time_left[(x, y)]  <= 0:
             self.reproduce_fish(x, y, new_x, new_y)
         else:
             self.move_fish_only(x, y, new_x, new_y)
@@ -119,22 +125,20 @@ class wator_planet:
         #Fish reproduces: baby stays at old position, adult moves
         # Baby fish stays
         self.grid[x, y] = "F"
-        self.fish_birth[(x, y)] = self.chronon
+        self.fish_time_left[(x, y)] = self.fish_reproduction_time
         self.fish_population += 1
         
         # Adult fish moves
         self.grid[new_x, new_y] = "F"
-        self.fish_birth[(new_x, new_y)] = self.chronon
+        self.fish_time_left[(new_x, new_y)] = self.fish_reproduction_time
     
     def move_fish_only(self, x, y, new_x, new_y):
-        #Fish just moves without reproducing
-        birth_time = self.fish_birth.get((x, y), 0)
-        
+        #Fish just moves without reproducing        
+
         self.grid[new_x, new_y] = "F"
-        self.fish_birth[(new_x, new_y)] = birth_time
-        
-        if (x, y) in self.fish_birth:
-            del self.fish_birth[(x, y)]
+        self.fish_time_left[(new_x, new_y)] = self.fish_time_left[(x,y)]
+        if (x, y) in self.fish_time_left:
+            del self.fish_time_left[(x,y)]
         
         self.grid[x, y] = " "
     
@@ -142,14 +146,14 @@ class wator_planet:
     
     def move_shark(self, x, y, new_x, new_y, current_energy):
         #Move shark with eating and reproduction logic
-        shark_age = self.get_shark_age(x, y)
+        self.shark_time_left[(x, y)] -= 1
         
         # Check if shark eats fish
         if self.grid[new_x, new_y] == "F":
             current_energy = self.shark_eats_fish(new_x, new_y, current_energy)
         
         # Shark survives: move or reproduce
-        if shark_age >= self.shark_reproduction_time:
+        if self.shark_time_left[(x, y)]  <= 0:
             self.reproduce_shark(x, y, new_x, new_y, current_energy)
         else:
             self.move_shark_only(x, y, new_x, new_y, current_energy)
@@ -157,10 +161,10 @@ class wator_planet:
     def shark_eats_fish(self, new_x, new_y, current_energy):
         #Shark eats fish at new position
         self.fish_population -= 1
-        current_energy += 3  # Gain energy from eating
+        current_energy += 2  # Gain energy from eating
         
-        if (new_x, new_y) in self.fish_birth:
-            del self.fish_birth[(new_x, new_y)]
+        if (new_x, new_y) in self.shark_time_left:
+            del self.shark_time_left[(new_x, new_y)]
         
         return current_energy
     
@@ -169,8 +173,8 @@ class wator_planet:
         self.grid[x, y] = " "
         self.shark_population -= 1
         
-        if (x, y) in self.shark_birth:
-            del self.shark_birth[(x, y)]
+        if (x, y) in self.shark_time_left:
+            del self.shark_time_left[(x, y)]
         if (x, y) in self.shark_energy:
             del self.shark_energy[(x, y)]
     
@@ -178,25 +182,25 @@ class wator_planet:
         #Shark reproduces: baby stays at old position, adult moves
         # Baby shark
         self.grid[x, y] = "S"
-        self.shark_birth[(x, y)] = self.chronon
+        self.shark_time_left[(x, y)] = self.shark_starvation_time
         self.shark_energy[(x, y)] = self.shark_initial_energy
         self.shark_population += 1
         
         # Adult shark
         self.grid[new_x, new_y] = "S"
-        self.shark_birth[(new_x, new_y)] = self.chronon
+        self.shark_time_left[(new_x, new_y)] = self.shark_starvation_time
         self.shark_energy[(new_x, new_y)] = current_energy
     
     def move_shark_only(self, x, y, new_x, new_y, current_energy):
         #Shark just moves without reproducing
-        birth_time = self.shark_birth.get((x, y), 0)
         
         self.grid[new_x, new_y] = "S"
-        self.shark_birth[(new_x, new_y)] = birth_time
-        self.shark_energy[(new_x, new_y)] = current_energy
+        self.shark_time_left[(new_x, new_y)] = self.shark_time_left[(x,y)]
         
-        if (x, y) in self.shark_birth:
-            del self.shark_birth[(x, y)]
+        self.grid[x, y] = " "
+        
+        if (x, y) in self.shark_time_left:
+            del self.shark_time_left[(x,y)]
         if (x, y) in self.shark_energy:
             del self.shark_energy[(x, y)]
         
@@ -252,7 +256,7 @@ def simulation(num_chronons):
     planet = wator_planet(
         width=10,
         height=10,
-        perc_fish=0.80,
+        perc_fish=0.01,
         perc_shark=0.01,
         fish_reproduction_time=8,
         shark_reproduction_time=12,
@@ -280,4 +284,4 @@ def simulation(num_chronons):
 
 # Test
 if __name__ == "__main__":
-    simulation(200)
+    simulation(20)
