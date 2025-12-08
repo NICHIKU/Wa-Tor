@@ -66,6 +66,7 @@ class wator_planet:
     def movement_result(self):
         #Move all animals once per turn
         filled_animal = np.argwhere(self.grid != " ")
+        # who moves first is random at every turn
         np.random.shuffle(filled_animal)
         
         for position in filled_animal:
@@ -94,19 +95,19 @@ class wator_planet:
         return new_x, new_y
     
     def get_fish_age(self, x, y):
-        #Calculate age of fish at position (x, y)
+        #Calculate age of fish at position x, y
         birth_time = self.fish_birth.get((x, y), 0)
         return self.chronon - birth_time
     
     def get_shark_age(self, x, y):
-        #Calculate age of shark at position (x, y)
+        #Calculate age of shark at position x, y
         birth_time = self.shark_birth.get((x, y), 0)
         return self.chronon - birth_time
     
     # Fish functions
     
     def move_fish(self, x, y, new_x, new_y):
-        # Move fish from (x, y) to (new_x, new_y) with reproduction logic
+        # Move fish with reproduction logic
         fish_age = self.get_fish_age(x, y)
         
         if fish_age >= self.fish_reproduction_time:
@@ -139,31 +140,22 @@ class wator_planet:
     
     # Shark functions
     
-    def move_shark(self, x, y, new_x, new_y):
-        #Move shark from (x, y) to (new_x, new_y) with eating and reproduction logic
+    def move_shark(self, x, y, new_x, new_y, current_energy):
+        #Move shark with eating and reproduction logic
         shark_age = self.get_shark_age(x, y)
-        current_energy = self.shark_energy.get((x, y), self.shark_initial_energy)
-        
-        # Shark loses energy each turn
-        current_energy -= 1
         
         # Check if shark eats fish
         if self.grid[new_x, new_y] == "F":
             current_energy = self.shark_eats_fish(new_x, new_y, current_energy)
         
-        # Check if shark starves
-        if current_energy <= 0:
-            self.shark_dies(x, y)
-            return
-        
-        # Shark survives - move or reproduce
+        # Shark survives: move or reproduce
         if shark_age >= self.shark_reproduction_time:
             self.reproduce_shark(x, y, new_x, new_y, current_energy)
         else:
             self.move_shark_only(x, y, new_x, new_y, current_energy)
     
     def shark_eats_fish(self, new_x, new_y, current_energy):
-        #Shark eats fish at position (new_x, new_y)
+        #Shark eats fish at new position
         self.fish_population -= 1
         current_energy += 3  # Gain energy from eating
         
@@ -173,7 +165,7 @@ class wator_planet:
         return current_energy
     
     def shark_dies(self, x, y):
-        #Shark dies of starvation
+        #Shark dies because it did not eat
         self.grid[x, y] = " "
         self.shark_population -= 1
         
@@ -184,13 +176,13 @@ class wator_planet:
     
     def reproduce_shark(self, x, y, new_x, new_y, current_energy):
         #Shark reproduces: baby stays at old position, adult moves
-        # Baby shark stays
+        # Baby shark
         self.grid[x, y] = "S"
         self.shark_birth[(x, y)] = self.chronon
         self.shark_energy[(x, y)] = self.shark_initial_energy
         self.shark_population += 1
         
-        # Adult shark moves
+        # Adult shark
         self.grid[new_x, new_y] = "S"
         self.shark_birth[(new_x, new_y)] = self.chronon
         self.shark_energy[(new_x, new_y)] = current_energy
@@ -210,6 +202,24 @@ class wator_planet:
         
         self.grid[x, y] = " "
     
+    def get_neighbour_list(self,x,y, new_x, new_y, current_energy):
+        #get a list of neighbours so the shark searches the fishes
+        neighbours = []
+        directions = [(-1,0),(1,0),(0,-1),(0,1)]
+        for delta_x, delta_y in directions:  
+                nx = (x + delta_x) % self.height
+                ny = (y + delta_y) % self.width
+                neighbours.append((nx, ny))
+             
+        for neighbour in neighbours:
+            if self.grid[neighbour[0], neighbour[1]] == "F":
+                self.move_shark(x, y, neighbour[0], neighbour[1], current_energy)
+                break
+                     
+        else:
+            if self.grid[new_x, new_y] != "S":
+                self.move_shark(x, y, new_x, new_y, current_energy)
+                    
     def animal_movement(self, x, y):
         #Coordinate movement of animal at position x,y
         if self.grid[x, y] == " ":
@@ -217,23 +227,32 @@ class wator_planet:
         
         animal_type = self.grid[x, y]
         new_x, new_y = self.get_random_neighbor(x, y)
-        destination = self.grid[new_x, new_y]
         
         if animal_type == "F":
-            if destination == " ":
+            if self.grid[new_x, new_y] == " ":
                 self.move_fish(x, y, new_x, new_y)
         
         elif animal_type == "S":
-            if destination != "S":
-                self.move_shark(x, y, new_x, new_y)
-
-
+            # Shark loses energy each turn
+            current_energy = self.shark_energy.get((x, y), self.shark_initial_energy)
+            current_energy -= 1
+            
+            # Check if shark lost all its energy
+            if current_energy <= 0:
+                self.shark_dies(x, y)
+                return
+            
+            self.shark_energy[(x, y)] = current_energy
+            
+            self.get_neighbour_list(x,y,new_x,new_y, current_energy)
+                    
+                     
 def simulation(num_chronons):
     
     planet = wator_planet(
         width=10,
         height=10,
-        perc_fish=0.01,
+        perc_fish=0.80,
         perc_shark=0.01,
         fish_reproduction_time=8,
         shark_reproduction_time=12,
@@ -261,4 +280,4 @@ def simulation(num_chronons):
 
 # Test
 if __name__ == "__main__":
-    simulation(15)
+    simulation(200)
