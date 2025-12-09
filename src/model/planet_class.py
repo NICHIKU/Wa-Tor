@@ -106,19 +106,14 @@ class wator_planet:
             return
         
         x, y = fish.getPosition()
-        #print(f"Fish before: ({x}, {y})") 
-        # Get empty neighbors
         empty_neighbors = self.get_empty_neighbors(x, y)
         
-        # If no empty space, stay in place
         if not empty_neighbors:
             fish.decrementTimeLeft()
             return
         
-        # Choose random empty neighbor
         new_x, new_y = self.choose_random_neighbor(empty_neighbors)
         
-        # Check reproduction
         if fish.canReproduce():
             baby = fish.reproduce()
             self.fishes.append(baby)
@@ -127,7 +122,6 @@ class wator_planet:
         else:
             self.grid[x, y] = " "
         
-        # Move fish
         fish.moveTo(new_x, new_y)
         #print(f"Fish after: {fish.getPosition()}") 
         self.grid[new_x, new_y] = "F"
@@ -135,82 +129,70 @@ class wator_planet:
     # shark movement functions
     
     def move_shark(self, shark: Shark) -> None:
-        # Check if shark is still alive
         if not shark.isAlive():
             return
         
         x, y = shark.getPosition()
         
-        # Look for fish in neighbors
-        fish_neighbors = self.get_fish_neighbors(x, y)
-
-        # Tries to eat a fish
-        if fish_neighbors:
-            # Choose a random fish neighbor
-            target_x, target_y = self.choose_random_neighbor(fish_neighbors)
-            
-            # Find and eat the fish
-            target_fish = self.find_fish(target_x, target_y)
-            
-            # Check if the fish is alive and valid
-            if target_fish and target_fish.isAlive():
-                shark.eat(target_fish)
-                self.fish_population -= 1
-                new_x, new_y = target_x, target_y
-                
-                # The moving shark goes to the fish's position, leaves empty behind and maybe baby
-                #moved_to_empty = False
-            else:
-                # The found fish is not alive/valid, so try to move to an empty space
-                empty_neighbors = self.get_empty_neighbors(x, y)
-                if not empty_neighbors:
-                    # Blocked, only lose energy (might starve)
-                    shark.decrementEnergy()
-                    if not shark.isAlive():
-                        self.grid[x, y] = " "
-                        self.shark_population -= 1
-                    return
-                # Move to empty space and lose energy
-                new_x, new_y = self.choose_random_neighbor(empty_neighbors)
-                #moved_to_empty = True
-                
-        # If no fish found, try to move to an empty space
-        else:
-            empty_neighbors = self.get_empty_neighbors(x, y)
-            
-            if not empty_neighbors:
-                # Blocked - lose energy and stay in place (might starve)
-                shark.decrementEnergy()
-                if not shark.isAlive():
-                    self.grid[x, y] = " "
-                    self.shark_population -= 1
-                return
-            
-            # Move to empty space and lose energy
-            new_x, new_y = self.choose_random_neighbor(empty_neighbors)
-           # moved_to_empty = True
+        if self.shark_tries_to_eat(shark, x, y):
+            return
         
-        # Reproduction occurs before the shark moves
+        if self.shark_tries_to_move(shark, x, y):
+            return
+        
+        self.shark_blocked(shark, x, y)
+
+    def shark_tries_to_eat(self, shark, x, y) -> bool:
+        fish_neighbors = self.get_fish_neighbors(x, y)
+        
+        if not fish_neighbors:
+            return False
+        
+        target_x, target_y = self.choose_random_neighbor(fish_neighbors)
+        target_fish = self.find_fish(target_x, target_y)
+        
+        if not target_fish or not target_fish.isAlive():
+            return False
+        
+        shark.eat(target_fish)
+        self.fish_population -= 1
+        
+        self.complete_shark_move(shark, x, y, target_x, target_y)
+        return True
+
+    def shark_tries_to_move(self, shark, x, y) -> bool:
+        empty_neighbors = self.get_empty_neighbors(x, y)
+        
+        if not empty_neighbors:
+            return False
+        
+        new_x, new_y = self.choose_random_neighbor(empty_neighbors)
+        self.complete_shark_move(shark, x, y, new_x, new_y)
+        return True
+
+    def shark_blocked(self, shark, x, y) -> None:
+        shark.decrementEnergy()
+        if not shark.isAlive():
+            self.grid[x, y] = " "
+            self.shark_population -= 1
+
+    def complete_shark_move(self, shark, x, y, new_x, new_y) -> None:
         if shark.canReproduce():
             baby = shark.reproduce()
             self.sharks.append(baby)
-            self.grid[x, y] = "S"  # Baby stays at the old position
+            self.grid[x, y] = "S"
             self.shark_population += 1
         else:
             self.grid[x, y] = " "
         
-        # Move the shark to the new position
         shark.moveTo(new_x, new_y)
         
-        # If the shark died from starvation during moveTo
         if not shark.isAlive():
             self.grid[new_x, new_y] = " "
             self.shark_population -= 1
         else:
             self.grid[new_x, new_y] = "S"
-            
-        # Energy and reproduction time decrement is already handled in shark.moveTo()
-                        
+                  
     def movement_result(self) -> None:
         all_animals = self.fishes + self.sharks
         np.random.shuffle(all_animals)
