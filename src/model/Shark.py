@@ -1,5 +1,5 @@
 from __future__ import annotations
-from Fish import Fish
+from model.Fish import Fish
 
 
 class Shark(Fish):
@@ -32,22 +32,18 @@ class Shark(Fish):
         self.energy = energy
         return True
     
-    #
-    
     def decrementEnergy(self) -> None:
-        """Lose energy and check starvation"""
         self.energy -= 1
         if self.isStarving():
             self.die()
     
     def resetEnergy(self) -> None:
-        """Reset to initial energy"""
         self.energy = self.initial_energy
     
     def isStarving(self) -> bool:
         return self.energy <= 0
     
-    def eat(self, fish: Fish, energy_gain: int = 4) -> bool:
+    def eat(self, fish: Fish, energy_gain: int = 2) -> bool:
         # Eat a fish and gain energy
         if not isinstance(fish, Fish) or not fish.isAlive():
             return False
