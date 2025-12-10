@@ -252,7 +252,6 @@ def export_to_json(world, filename: str = "simulation_data.json") -> None:
         "chronons": []
     }
     
-    # Créer une entrée pour chaque chronon
     for chronon in range(len(world.fish_history)):
         data["chronons"].append({
             "chronon": chronon,
@@ -260,7 +259,6 @@ def export_to_json(world, filename: str = "simulation_data.json") -> None:
             "shark_count": world.shark_history[chronon]
         })
     
-    # Écrire dans le fichier JSON
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     
