@@ -59,12 +59,13 @@ class WatorPlanet:
             shark = Shark("🦈", int(x), int(y), reproduction_time=6, starvation_time=5, energy=2)
             self.sharks.append(shark)
     
+    # methods to get and filter neighbours
     def get_all_neighbors(self, x: int, y: int) -> list[tuple[int, int]]:
         neighbors = []
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         for delta_x, delta_y in directions:
-            nx = int((x + delta_x)) % self.height
-            ny = int((y + delta_y)) % self.width
+            nx = (x + delta_x) % self.height
+            ny = (y + delta_y) % self.width
             neighbors.append((nx, ny))
         return neighbors
     
@@ -85,7 +86,7 @@ class WatorPlanet:
         return neighbors[np.random.randint(len(neighbors))]
     
     def find_fish(self, x: int, y: int) -> Fish | None:
-        # method t help the shark to find the fish
+        # method t help the shark to find the fish and to give the exact relation of coordinates
         for fish in self.fishes:
             if fish.isAlive() and fish.getX() == x and fish.getY() == y:
                 return fish
