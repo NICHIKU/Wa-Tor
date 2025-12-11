@@ -1,5 +1,5 @@
 from __future__ import annotations
-from model.Fish import Fish
+from .Fish import Fish
 
 
 class Shark(Fish):
@@ -43,7 +43,7 @@ class Shark(Fish):
     def isStarving(self) -> bool:
         return self.energy <= 0
     
-    def eat(self, fish: Fish, energy_gain: int = 2) -> bool:
+    def eat(self, fish: Fish, energy_gain: int = 1) -> bool:
         # Eat a fish and gain energy
         if not isinstance(fish, Fish) or not fish.isAlive():
             return False

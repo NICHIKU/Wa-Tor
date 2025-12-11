@@ -1,7 +1,7 @@
 import numpy as np
 import json
-from model.Fish import Fish
-from model.Shark import Shark
+from .Fish import Fish
+from .Shark import Shark
 
 class WatorPlanet:
     
@@ -50,13 +50,13 @@ class WatorPlanet:
         fish_positions = np.argwhere(self.grid == "F")
         for position in fish_positions:
             x, y = position
-            fish = Fish("🐟", int(x), int(y), reproduction_time=8)
+            fish = Fish("🐟", int(x), int(y), reproduction_time=2)
             self.fishes.append(fish)
         
         shark_positions = np.argwhere(self.grid == "S")
         for position in shark_positions:
             x, y = position
-            shark = Shark("🦈", int(x), int(y), reproduction_time=12, starvation_time=5, energy=4)
+            shark = Shark("🦈", int(x), int(y), reproduction_time=6, starvation_time=5, energy=2)
             self.sharks.append(shark)
     
     def get_all_neighbors(self, x: int, y: int) -> list[tuple[int, int]]:
@@ -203,3 +203,33 @@ class WatorPlanet:
         self.chronon += 1
         self.fish_history.append(self.fish_population)
         self.shark_history.append(self.shark_population)
+
+def simulation(num_chronons: int):
+    world = WatorPlanet(
+        width=10,
+        height=10,
+        perc_fish=0.01,
+        perc_shark=0.01
+    )
+    
+    print("=" * 50)
+    print("WA-TOR SIMULATION")
+    print("=" * 50)
+    print("Initial grid:")
+    print(world.grid)
+    print(f"Fish: {world.fish_population} | Sharks: {world.shark_population}")
+    print(f"Chronon: {world.chronon}\n")
+    
+    for i in range(num_chronons):
+        world.movement_result()
+        
+        print("=" * 50)
+        print(f"Chronon {world.chronon}:")
+        print(world.grid)
+        print(f"Fish: {world.fish_population} | Sharks: {world.shark_population}")
+    print("\nSimulation complete!")
+    return world
+
+
+if __name__ == "__main__":
+    simulation(10)
