@@ -8,7 +8,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 import os
 
-CELL_SIZE = 10
+CELL_SIZE = 12
 
 
 class WatorViewer:
@@ -30,6 +30,20 @@ class WatorViewer:
 
         self.canvas = tk.Canvas(root, bg="black")
         self.canvas.pack()
+
+        CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))     # /wa-Tor/src/model
+        SRC_DIR = os.path.dirname(CURRENT_DIR)                       # /wa-Tor/src
+        IMG_DIR = os.path.join(SRC_DIR, "img")                       # /wa-Tor/src/img
+
+        fish_path = os.path.join(IMG_DIR, "fish.png")
+        shark_path = os.path.join(IMG_DIR, "shark.png")
+
+        if not os.path.exists(fish_path):
+            raise FileNotFoundError(f"Image manquante : {fish_path}")
+
+        # Exemple d'utilisation :
+        fish_sprite = Image.open(fish_path)
+        shark_sprite = Image.open(shark_path)
 
         ctrl = tk.Frame(root)
         ctrl.pack()
@@ -55,8 +69,8 @@ class WatorViewer:
         self.speed_scale.set(self.speed)
         self.speed_scale.grid(row=0, column=5)
 
-        self.sprite_fish = Image.open("fish.png")
-        self.sprite_shark = Image.open('shark.png')
+        self.sprite_fish = Image.open(fish_path)
+        self.sprite_shark = Image.open(shark_path)
         self.sprite_empty = Image.new("RGB", (CELL_SIZE, CELL_SIZE), (0, 0, 40))
 
         # resized images
@@ -75,12 +89,21 @@ class WatorViewer:
     # JSON Gestion
 
     def load_json_dialog(self):
-        path = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
-        if path:
-            self.load_json(path)
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        DEFAULT_DIR = os.path.normpath(os.path.join(BASE_DIR, "..", "outputs"))
+
+        path = filedialog.askopenfilename(
+            title="Choisir un fichier JSON",
+            initialdir=DEFAULT_DIR,
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+        )
+        if not path:
+            return
+        self.load_json(path)
 
     def load_json(self, path):
         """Load JSON and compute fish/shark histories and min/max."""
+        print(path)
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 

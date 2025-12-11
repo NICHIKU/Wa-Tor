@@ -1,25 +1,25 @@
 import json
 import os
 from datetime import datetime
-from planet_class import WatorPlanet   # adapte si ton fichier ne s'appelle pas wator.py
+from .planet_class import WatorPlanet   # adapte si ton fichier ne s'appelle pas wator.py
 
 OUTPUT_DIR = "outputs"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-def run_and_record_json(width=60, height=60, perc_fish=0.5, perc_shark=0.05, chronons=100):
-    world = WatorPlanet(width=width, height=height, 
+def run_and_record_json(width, height, chronons, perc_fish=0.5, perc_shark=0.05):
+    world = WatorPlanet(width=int(width), height=int(height), 
                          perc_fish=perc_fish, perc_shark=perc_shark)
 
     history = []
 
     history.append(world.grid.tolist())
 
-    for _ in range(chronons):
+    for _ in range(int(chronons)):
         world.movement_result()
         history.append(world.grid.tolist())
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_path = os.path.join(OUTPUT_DIR, f"wator_history_grid_{timestamp}_number_of_chronons_{chronons}.json")
+    out_path = os.path.join(OUTPUT_DIR, f"wator_history_grid_{timestamp}_number_of_chronons_{chronons}_size_height{height}x{width}.json")
 
     data = {
         "width": width,

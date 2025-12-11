@@ -1,7 +1,7 @@
 import numpy as np
 import json
-from Fish import Fish
-from Shark import Shark
+from .Fish import Fish
+from .Shark import Shark
 
 class WatorPlanet:
     
@@ -50,13 +50,13 @@ class WatorPlanet:
         fish_positions = np.argwhere(self.grid == "F")
         for position in fish_positions:
             x, y = position
-            fish = Fish("🐟", int(x), int(y), reproduction_time=8)
+            fish = Fish("🐟", int(x), int(y), reproduction_time=2)
             self.fishes.append(fish)
         
         shark_positions = np.argwhere(self.grid == "S")
         for position in shark_positions:
             x, y = position
-            shark = Shark("🦈", int(x), int(y), reproduction_time=12, starvation_time=5, energy=4)
+            shark = Shark("🦈", int(x), int(y), reproduction_time=6, starvation_time=5, energy=2)
             self.sharks.append(shark)
     
     def get_all_neighbors(self, x: int, y: int) -> list[tuple[int, int]]:
