@@ -11,6 +11,7 @@ L'environnement est une grille toroïdale (les bords sont connectés), permettan
 ```
 numpy
 tkinter
+matplotlib
 ```
 
 
@@ -28,9 +29,16 @@ pip install numpy
 pip install numpy
 ```
 
+```bash
+pip install PLT
+```
+
 ##  Utilisation
 
-Exécuter le fichier main.py
+Exécuter le fichier main.py, Entrez vos paramètres, 
+Une fois cela fait et que l'interface s'ouvre,
+Cliquez sur Ouvrir JSON et allez dans le dossier output du projet qui vient de se créer et sélectionnez votre simulation,
+Une fois cela fait cliquer sur play.
 
 ```bash
 cd mon-dossier
@@ -39,10 +47,10 @@ python3 main.py
 
 ##  Paramètres recommandés
 
-Dans le fichier main.py
+Dans le fichier main.py situé dans le dossier src
 
 ```python
-world = wator_planet(width=50, height=50, perc_fish=0.4, perc_shark=0.1)
+world = wator_planet(width=60, height=60, perc_fish=0.5, perc_shark=0.05)
 ```
 
 width et height : Taille de la grille de la simulation

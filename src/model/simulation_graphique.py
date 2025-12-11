@@ -12,6 +12,14 @@ CELL_SIZE = 12
 
 
 class WatorViewer:
+    """
+    A graphical viewer for the WA-TOR simulation.
+
+    This class provides a Tkinter-based interface to visualize the WA-TOR simulation,
+    load simulation data from JSON files, and display population statistics over time.
+    It supports playing, pausing, and stepping through the simulation frames.
+    """
+
     def __init__(self, root):
         print(f"Current working dir: {os.getcwd()}")
         self.root = root
@@ -89,6 +97,12 @@ class WatorViewer:
     # JSON Gestion
 
     def load_json_dialog(self):
+        """
+            Open a file dialog to load a JSON file containing WA-TOR simulation data.
+            The loaded data is used to populate the simulation history and initialize the viewer.  
+            Args:
+                path (str): Path to the JSON file to load.
+        """
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         DEFAULT_DIR = os.path.normpath(os.path.join(BASE_DIR, "..", "outputs"))
 
@@ -102,12 +116,21 @@ class WatorViewer:
         self.load_json(path)
 
     def load_json(self, path):
-        """Load JSON and compute fish/shark histories and min/max."""
+        """
+        Load and parse a JSON file containing WA-TOR simulation data.
+
+        This method reads the JSON file, initializes the simulation history, and sets up the viewer
+        with the loaded data, including fish and shark population histories.
+        It also calculates min/max population values for statistics display.
+
+        Args:
+            filepath (str): Path to the JSON file to load.
+        """
+
         print(path)
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
-
-        # Reset previous state
+            
         self.fish_history = []
         self.shark_history = []
         self.frame_index = 0
@@ -116,36 +139,28 @@ class WatorViewer:
         # 1) {"history": [grid0, grid1, ...]} where grid is list of rows
         # 2) {"frames": [{"grid": grid0, "fish": n, "sharks": m}, ...]}
         if "history" in data:
-            # Convert to numpy array (frames, H, W)
             self.history = np.array(data["history"])
-            # compute fish/shark counts from the grids
             self.fish_history = [int((frame == "F").sum()) for frame in self.history]
             self.shark_history = [int((frame == "S").sum()) for frame in self.history]
         elif "frames" in data:
-            # frames may contain grid + optional fish/sharks counters
             frames = data["frames"]
-            # try to build history from frames[i]["grid"] or frames[i]["grid"]
             grids = []
             for f in frames:
                 if "grid" in f:
                     grids.append(f["grid"])
                 else:
-                    # if frame is directly a grid (fallback)
                     grids.append(f)
-                # collect counters if present, otherwise compute later
                 if "fish" in f and "sharks" in f:
                     self.fish_history.append(int(f["fish"]))
                     self.shark_history.append(int(f["sharks"]))
             self.history = np.array(grids)
-            # if counters were not in frames, compute now
             if not self.fish_history:
                 self.fish_history = [int((frame == "F").sum()) for frame in self.history]
             if not self.shark_history:
                 self.shark_history = [int((frame == "S").sum()) for frame in self.history]
-        # compute frames / dims
+    
         self.frames, self.height, self.width = self.history.shape
 
-        # compute min/max safely
         if self.fish_history:
             self.min_fish = int(min(self.fish_history))
             self.max_fish = int(max(self.fish_history))
@@ -173,9 +188,17 @@ class WatorViewer:
 
         print(f"OK JSON chargé ({self.width}×{self.height}) — {self.frames} Chronons")
 
-    # Grid creation
 
     def draw_frame(self, idx):
+        """
+        Draw the current simulation frame on the canvas.
+        It uses the preloaded sprites to represent fish, sharks, and empty cells.
+        The technique involves creating a full PIL image for efficiency, then converting it to a Tkinter image for display.
+
+        Args:
+            frame_index (int): The index of the frame to draw.
+        """
+
         if self.history is None:
             return
         if self.frame_index == (self.frames-1):
@@ -184,7 +207,6 @@ class WatorViewer:
         grid = self.history[idx]
 
         self.update_population_labels(grid)
-        # Create a full PIL image (fast & memory-efficient)
         frame_img = Image.new("RGB", (self.width * CELL_SIZE, self.height * CELL_SIZE))
 
         for y in range(self.height):
@@ -192,26 +214,52 @@ class WatorViewer:
                 tile = self.sprite_map.get(grid[y][x], self.sprite_empty)
                 frame_img.paste(tile, (x * CELL_SIZE, y * CELL_SIZE))
 
-        # Convert to Tk image
         self.tk_img = ImageTk.PhotoImage(frame_img)
         self.canvas.create_image(0, 0, anchor="nw", image=self.tk_img)
 
         self.label_frame.config(text=f"Chronons: {idx}/{self.frames-1}")
 
-    # function 
+
 
     def update_speed(self, v):
+        """
+        Update the playback speed of the simulation.
+
+        This method adjusts the delay between frames during playback.
+
+        Args:
+            speed (int): New speed value in milliseconds.
+        """
+
         self.speed = int(v)
 
     def play(self):
+        """
+        Start or resume the simulation playback.
+
+        This method sets the simulation to running and begins the update loop.
+        """
+
         if not self.running:
             self.running = True
             self.update_loop()
 
     def pause(self):
+        """
+        Pause the simulation playback.
+
+        This method stops the update loop, freezing the simulation at the current frame.
+        """
+
         self.running = False
 
     def step(self):
+        """
+        Advance the simulation by one frame.
+
+        This method increments the frame index and redraws the grid for the new frame.
+        """
+
         self.pause()
         if self.history is None:
             return
@@ -219,6 +267,13 @@ class WatorViewer:
         self.draw_frame(self.frame_index)
 
     def update_loop(self):
+        """
+        Update the simulation frame in a loop while the simulation is running.
+
+        This method advances the frame index, redraws the current frame, and schedules the next update.
+        If the simulation is paused or no history is loaded, the loop stops.
+        """
+
         if not self.running or self.history is None:
             return
         self.frame_index = (self.frame_index + 1) % self.frames
@@ -226,6 +281,15 @@ class WatorViewer:
         self.root.after(self.speed, self.update_loop)
 
     def update_population_labels(self, grid):
+        """
+        Update the labels displaying the current fish and shark populations.
+
+        Counts the number of fish ("F") and sharks ("S") in the current grid and updates the corresponding labels.
+
+        Args:
+            grid (numpy.ndarray): The current state of the simulation grid.
+        """
+
         fish_count = np.count_nonzero(grid == "F")
         shark_count = np.count_nonzero(grid == "S")
 
@@ -234,7 +298,14 @@ class WatorViewer:
 
         
     def open_stats_window(self):
-    
+        """
+        Open a new window displaying population statistics and a plot of fish and shark populations over time.
+
+        This window shows the maximum and minimum populations of fish and sharks,
+        the total number of chronons, and a plot of population trends using Matplotlib.
+        The plot is embedded in the window using a Tkinter canvas.
+        """
+
         win = tk.Toplevel(self.root)
         win.title("Population Stats")
         win.geometry("600x500")  # plus grand pour accueillir le graphique

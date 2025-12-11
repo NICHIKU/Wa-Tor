@@ -3,6 +3,25 @@ from .Fish import Fish
 
 
 class Shark(Fish):
+    """
+    A class representing a shark entity in the WA-TOR ecosystem simulation, inheriting from the Fish class.
+
+    Sharks are predators that move, reproduce, and consume fish to survive.
+    In addition to the attributes inherited from Fish, sharks have energy and starvation timers.
+    A shark dies if it starves (energy reaches zero) and reproduces after a certain number of chronons.
+
+    Attributes:
+        reproduction_time (int): Number of chronons required for the shark to reproduce.
+        time_left (int): Remaining chronons before the shark can reproduce again.
+        image (str): Visual representation or identifier of the shark.
+        positionX (int): Current x-coordinate of the shark on the grid.
+        positionY (int): Current y-coordinate of the shark on the grid.
+        alive (bool): Indicates whether the shark is alive (True) or dead (False).
+        energy (int): Current energy level of the shark.
+        initial_energy (int): Initial energy level of the shark, used for resetting after feeding.
+        starvation_time (int): Number of chronons the shark can survive without eating.
+    """
+
     def __init__(self: Shark, 
                  image: str,
                  positionX: int,
@@ -44,7 +63,19 @@ class Shark(Fish):
         return self.energy <= 0
     
     def eat(self, fish: Fish, energy_gain: int = 1) -> bool:
-        # Eat a fish and gain energy
+        """
+        Attempt to eat a fish, increasing the shark's energy if successful.
+
+        The fish is killed, and the shark gains energy if the fish is alive and valid.
+
+        Args:
+            fish (Fish): The fish to be eaten.
+            energy_gain (int, optional): Amount of energy gained by the shark. Defaults to 1.
+
+        Returns:
+            bool: True if the fish was successfully eaten, False otherwise.
+        """
+
         if not isinstance(fish, Fish) or not fish.isAlive():
             return False
         
@@ -52,10 +83,22 @@ class Shark(Fish):
         self.energy += energy_gain
         return True
     
-    # override methods of fish
     
     def moveTo(self, new_x: int, new_y: int) -> bool:
-        # moves like the fish but also loses energy
+        """
+        Move the shark to a new position on the grid.
+
+        Updates the shark's position, decrements its reproduction timer and energy,
+        and checks if the shark is still alive after the move.
+
+        Args:
+            new_x (int): The new x-coordinate for the shark.
+            new_y (int): The new y-coordinate for the shark.
+
+        Returns:
+            bool: True if the shark is still alive after moving, False otherwise.
+        """
+
         if self.setPosition(new_x, new_y):
             self.decrementTimeLeft()
             self.decrementEnergy()
@@ -63,7 +106,15 @@ class Shark(Fish):
         return False
     
     def reproduce(self) -> Shark:
-        # create a baby shark
+        """
+        Create a new shark offspring with the same properties as the parent.
+
+        Resets the parent's reproduction timer and returns the new shark instance.
+
+        Returns:
+            Shark: A new shark instance with the same attributes as the parent.
+        """
+
         baby = Shark(
             self.image, 
             self.positionX, 

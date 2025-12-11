@@ -1,6 +1,22 @@
 from __future__ import annotations
 
 class Fish: 
+    """
+    A class representing a fish entity in the WA-TOR ecosystem simulation.
+
+    Fish are characterized by their position on a grid, a visual representation,
+    and a reproduction timer. Each fish moves, reproduces, and interacts with its environment
+    based on the simulation rules.
+
+    Attributes:
+        reproduction_time (int): Number of chronons required for the fish to reproduce.
+        time_left (int): Remaining chronons before the fish can reproduce again.
+        image (str): Visual representation or identifier of the fish.
+        positionX (int): Current x-coordinate of the fish on the grid.
+        positionY (int): Current y-coordinate of the fish on the grid.
+        alive (bool): Indicates whether the fish is alive (True) or dead (False).
+    """
+
     def __init__(self: Fish, 
                  image: str,
                  positionX: int,
@@ -25,7 +41,6 @@ class Fish:
     def getY(self) -> int:
         return self.positionY
     
-    #easier to use inside the world code
     def getPosition(self) -> tuple[int, int]:
         return (self.positionX, self.positionY)
     
@@ -33,10 +48,8 @@ class Fish:
         return self.reproduction_time
     
     def getTimeLeft(self) -> int:
-        # time left until reproduction
         return self.time_left
     
-    # check if animal is dead to continue the interaction
     def isAlive(self) -> bool:
         return self.alive
     
@@ -58,7 +71,6 @@ class Fish:
         self.positionY = y
         return True
     
-    #same as previously
     def setPosition(self, x: int, y: int) -> bool:
         return self.setX(x) and self.setY(y)
     
@@ -71,36 +83,52 @@ class Fish:
     # ===== REPRODUCTION METHODS =====
     
     def decrementTimeLeft(self) -> None:
-        #Decrement time left until reproduction
         if self.time_left > 0:
             self.time_left -= 1
     
     def resetTimeLeft(self) -> None:
-        #Reset time left to base reproduction time
         self.time_left = self.reproduction_time
     
     def canReproduce(self) -> bool:
-        #Check if fish can reproduce
         return self.time_left <= 0
     
     def reproduce(self) -> Fish:
-        #Create a baby fish at current position
+        """
+        Create a new fish offspring with the same properties as the parent.
+
+        This method generates a new fish at the parent's current position,
+        resets the parent's reproduction timer, and returns the new fish instance.
+
+        Returns:
+            Fish: A new fish instance with the same image and reproduction time as the parent.
+        """
+
         baby = Fish(self.image, self.positionX, self.positionY, self.reproduction_time)
         self.resetTimeLeft()
         return baby
     
-    # movement methods
     
     def moveTo(self, new_x: int, new_y: int) -> bool:
-        #Move to new position and decrement time left
+        """
+        Move the fish to a new position on the grid.
+
+        This method attempts to update the fish's position to the specified coordinates.
+        If the move is successful, the fish's reproduction timer is decremented.
+
+        Args:
+            new_x (int): The new x-coordinate for the fish.
+            new_y (int): The new y-coordinate for the fish.
+
+        Returns:
+            bool: True if the move was successful, False otherwise.
+        """
+
         if self.setPosition(new_x, new_y):
             self.decrementTimeLeft()
             return True
         return False
     
-    # life status 
     def die(self) -> None:
-        # Mark fish as dead
         self.alive = False
 
 
