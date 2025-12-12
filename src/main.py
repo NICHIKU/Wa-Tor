@@ -6,11 +6,12 @@ from model.simulation_graphique import WatorViewer
 
 def export_to_json(world, filename: str = "simulation_data.json") -> None:
     """
-    Exporte les données de simulation dans un fichier JSON.
+    Exports the simulation data to a JSON file.
 
     Args:
-        world: Instance de wator_planet contenant les données de simulation
-        filename: Nom du fichier JSON à créer (par défaut: "simulation_data.json")
+        world: wator_planet Instance containing simulation data
+        filename: Json file name to create (default: "simulation_data_compact.json")
+
     """
     data = {
         "simulation_parameters": {
@@ -39,11 +40,11 @@ def export_to_json(world, filename: str = "simulation_data.json") -> None:
 
 def export_to_json_compact(world, filename: str = "simulation_data_compact.json") -> None:
     """
-    Version compacte : exporte uniquement les listes de populations.
+    Compact Version: Only exports fish and shark population histories to a JSON file.
 
     Args:
-        world: Instance de wator_planet
-        filename: Nom du fichier JSON
+        world: wator_planet Instance containing simulation data
+        filename: Json file name to create (default: "simulation_data_compact.json")
     """
     data = {
         "fish_population": world.fish_history,
@@ -57,6 +58,23 @@ def export_to_json_compact(world, filename: str = "simulation_data_compact.json"
 
 
 def simulation(num_chronons: int, width: int, height: int):
+    """
+    Run a WA-TOR predator-prey simulation for a specified number of chronons (time steps).
+
+    This function initializes a WA-TOR world with a grid of specified width and height,
+    populated with fish and sharks at predefined percentages (50% fish, 5% sharks).
+    It then simulates the movement and interaction of fish and sharks over a given number of chronons,
+    printing the state of the grid and population counts at each step.
+
+    Args:
+        num_chronons (int): Number of time steps (chronons) to simulate.
+        width (int): Width of the simulation grid.
+        height (int): Height of the simulation grid.
+
+    Returns:
+        WatorPlanet: The final state of the WA-TOR world after the simulation.
+    """
+
     world = WatorPlanet(
         width=int(width),
         height=int(height),
@@ -83,13 +101,27 @@ def simulation(num_chronons: int, width: int, height: int):
     return world
 
 def main():
+    """
+    Main function to run the WA-TOR simulation and visualization.
+
+    This function prompts the user for simulation parameters (number of chronons, grid width, and height),
+    runs the simulation, records the results in a JSON file, and launches the graphical viewer
+    to visualize the simulation.
+
+    Steps:
+        1. Prompts the user for the number of chronons, grid width, and grid height.
+        2. Runs the simulation with the provided parameters.
+        3. Records the simulation results in a JSON file.
+        4. Launches the graphical viewer to display the simulation.
+    """
+
     number_of_chronon = input('How many chronon  :')
     number_width = input('How many width  :')
     number_height = input('How many height  :')
     simulation(number_of_chronon, number_width, number_height)
     run_and_record_json(number_width, number_height, number_of_chronon)
     root = tk.Tk()
-    app = WatorViewer(root)  # ⬅ lance ton viewer
+    app = WatorViewer(root)  
     app.root.mainloop()
 
 
